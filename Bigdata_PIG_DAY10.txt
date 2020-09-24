@@ -1,0 +1,30 @@
+	5) 실습 3	
+		- http://hdr.undp.org/en/data
+			hdi-data.csv, export-data.csv
+		
+		-샘플 데이터는 hdfs로 전송
+			hdfs dfs -put /root/source/hdi-data.csv /upload
+			hdfs dfs -ls /upload
+		- 1인당 국민 총소득(gni)이 2000달러 이상인 국가들 출력
+			(순위, 국가, hdi, 기대수명, Mean years of schooling, Expected years of schooling, gni)
+			
+			A = LOAD '/upload/hdi-data.csv' using PigStorage(',') 
+				AS (id:int, country:chararray, hdi:float, lifeex:int,  mych:int, eysch:int, gni:int);
+			B = FILTER A BY gni >= 2000; 
+			C = ORDER B BY 
+			
+			STORE C INTO '/upload/hdi';
+			--------------------------------------------
+			hdfs dfs -ls /upload/hdi
+			hdfs dfs -cat /upload/hdi/part-r-00000
+		
+		- hdi-data.csv와 export-data의 조인 
+			hdfs dfs -put /root/source/export-data.csv /upload 
+			hdfs dfs -ls /upload
+
+			D = LOAD '/upload/export-data.csv' using PigStorage(',')
+				AS (country:chararray, export:float);
+
+			E = JOIN C BY country, D BY country;
+
+			DUMP E;
